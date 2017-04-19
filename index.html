@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset=utf-8 />
+    <title>Lab 08 Starter</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+    <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: whitesmoke;
+            font-family: Lato, sans-serif;
+            color: #0D0000;
+        }
+        header {
+            padding: 6px 10%;
+        }
+        h1 {
+            display: inline-block;
+            margin-right: 20px;
+            color: #001323;
+        }
+        h2 {
+            display: inline-block;
+            color: #001323;
+        }
+        #map {
+            width: 80%;
+            height: 540px;
+            margin: 10px auto;
+        }
+        footer {
+            padding: 6px 10%;
+            width: 80%;
+        }
+        p {
+            font-size: 1em;
+            color: #001323;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Coal and Hydro Plants near Dallas Texas</h1>
+        <h2>Includes names and locations</h2>
+    </header>
+
+    <div id='map'></div>
+
+    <footer>
+        <p>Map authored by Jack Smarr</p>
+        <p>Illustrates coal mines in red and hydro plants in blue, along with the name and capacity of each plant.</p>
+    </footer>
+    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+    <script src="data/power-plants.js"></script>
+    <script>
+
+      var map = L.map('map', {
+          center: [32.7626,-96.8178],
+          zoom: 7,
+      });
+
+      var tiles = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+          subdomains: 'abcd',
+          maxZoom: 19
+      });
+
+      tiles.addTo(map);
+   //  plants.features.sort(function(a,b) {
+     //    return b.properties.capacity_mw - a.properties.capacity_mw;
+     //});
+     L.geoJson(plants, {
+         pointToLayer: function(feature,latlng) {
+             return L.circleMarker(latlng, {
+                color: 'orange',
+                weight: 1,
+                fillColor: 'yellow',
+                fillOpacity: .8,
+                radius: getRadius(feature.properties.capacity_mw)
+
+             });
+
+
+         },
+
+      filter: function (feature){  //singles out the type of fuel sources from the dataset
+         if (feature.properties.fuel_source.Hydro ||
+             feature.properties.fuel_source.Coal) {
+             return feature;
+
+           }
+
+        },
+
+
+         onEachFeature: function(feature, layer) {  //harvests info from each of the filtered items and sets up how you show it on the map
+           if (feature.properties.fuel_source.Coal) {
+               layer.setStyle({
+                    fillColor: 'red',
+                    radius: getRadius(feature.properties.fuel_source.Coal) //this needs the getRadius function found below outside of geoJson after the addTo(map);
+               });
+           } else if (feature.properties.fuel_source.Hydro){
+                layer.setStyle({
+                     fillColor: 'blue',
+                     radius: getRadius(feature.properties.fuel_source.Hydro)
+                });
+           }
+
+          // layer.bindTooltip(layer.feature.properties.plant_name); //makes a popup on the plant name
+           layer.bindTooltip(layer.feature.properties.plant_name   +=  layer.feature.properties.capacity_mw);//attempt to string together layers.feathures.properties.capapcity_mw
+         }
+
+       }).addTo(map);
+
+       function getRadius(area) { //sets up the radius function for the getRadius statement in the oneach feature function
+         var radius = Math.sqrt(area/Math.PI);
+         return radius * .8;
+
+       }// example object from email. I used the += to add capacity to the popup
+/*var myObject = {
+  "id": 0,
+  "properties": {
+      "name": "plantA",
+      "fuel_source": {
+          "coal": 2654,
+          "hydro": 3621
+      }
+  }
+};
+
+// access the fuel sources object
+var fuelSources = myObject.properties.fuel_source;
+
+// empty tooltipString
+var tooltipString = '';
+
+// for each item in the object
+for(var fuel in fuelSources){
+  // access the object keys and values
+  console.log(fuel + ' ' + fuelSources[fuel]);
+
+  // concatenate new string values to output string
+  tooltipString += fuel + ' ' + fuelSources[fuel] + '<br />';
+}
+
+// log to console or bind to marker
+console.log(tooltipString);*/
+
+
+
+
+
+
+
+
+
+
+    /* }
+     var commonStyles = {
+            weight: 1,
+            stroke: 1,
+            fillOpacity: .8
+     }
+     var hydroLayer = L.geoJson(plants, {
+         pointToLayer: function(feature,latLng) {
+              return L.circleMarker(latLng, commonStyles);
+          },
+          filter: function(feature) {
+              if(feature.properties.fuel_source.Hydro) {
+                 return feature;
+              }
+          },
+          style: function (feature) {
+              return {
+                 color: '#1f78b4',
+                 fillColor: '#1f78b4',
+                 radius: getRadius(feature.properties.fuel_source.Hydro)
+              }
+          }
+    // }).addTo(map);
+    /* var windLayer = L.geoJson( plants, {
+         pointToLayer: function {
+             return L.circleMarker(latLng,commonStyles);
+         },
+         filter: function(feature){
+            if(feature.properties.fuel_source.Wind) {
+                return feature;
+            }
+         },
+         style: function (feature) {
+            return{
+               color: '#a6cee3',
+               fillColor: 'a6cee3',
+               radius: getRadius(feature.properties.fuel_source.Wind)
+            }
+         }*/
+
+
+
+    </script>
+
+</body>
+
+</html>
